@@ -1,133 +1,184 @@
 # GPUI Skills
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./skills/.claude-plugin/plugin.json)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./package.json)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](https://github.com/zed-industries/zed)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-Standard-purple.svg)](https://skills.sh)
 
-Claude Code skills for building cross-platform desktop UI applications with the [GPUI](https://gpui.rs) framework in Rust.
+Modular Agent Skills for building cross-platform desktop UI applications with the [GPUI](https://gpui.rs) framework in Rust. Compatible with any AI coding agent, including **Antigravity (agy)**, **Codex**, **CommandCode**, **Claude Code**, **Cursor**, **OpenCode**, and other assistants supporting the open Agent Skills standard.
+
+---
 
 ## About GPUI
 
-[GPUI](https://gpui.rs) is a high-performance UI framework developed by [Zed Industries](https://zed.dev) for building native desktop applications in Rust. Key features include:
+[GPUI](https://gpui.rs) is a high-performance UI framework developed by [Zed Industries](https://zed.dev) for building native desktop applications in Rust:
 
-- **High Performance**: GPU-accelerated rendering with efficient state management
-- **Cross-Platform**: Build for macOS, Linux, and Windows from a single codebase
-- **Type-Safe**: Leverages Rust's type system for reliable UI code
-- **Modern Patterns**: Entity-based state management with async/await support
-- **Tailwind-like Styling**: Familiar utility-first styling approach
+- **GPU-Accelerated**: Fast, smooth rendering at 120 FPS
+- **Cross-Platform**: macOS, Linux, and Windows from a single codebase
+- **Type-Safe**: Leverages Rust's compile-time safety and type system
+- **Entity State**: Clean reactivity without virtual DOM overhead
+- **Tailwind-like Styling**: Composable, utility-first UI styling
+
+---
 
 ## Installation
 
-Copy the `skills` folder to `.claude/skills` in your GPUI project:
+You can install these skills using `npx skills`, the included installer script, or by copying directly into your agent's skills directory.
+
+### Method 1: Package Manager (`npx skills`)
+
+The [Skills CLI](https://skills.sh) is the open package manager for AI agent skills. It automatically detects and links skills to your installed agents:
 
 ```bash
-# Clone or copy this repository
+# Install to current project (auto-detects installed agents)
+npx skills add <repository-url>
+
+# Install globally for all agents on your machine
+npx skills add <repository-url> -g
+
+# Install to specific agents
+npx skills add <repository-url> --agent antigravity codex command-code claude-code cursor
+```
+
+### Method 2: Shell Installer (`install.sh`)
+
+Clone this repository and run `./install.sh`:
+
+```bash
 git clone <repository-url> gpui-skills
+cd gpui-skills
 
-# Copy to your project
-cp -r gpui-skills/skills your-project/.claude/skills
+# Auto-detect installed agents and install globally
+./install.sh
+
+# Install globally for specific agents
+./install.sh --agent agy            # Antigravity (agy)
+./install.sh --agent codex          # Codex
+./install.sh --agent commandcode    # CommandCode
+./install.sh --agent claude         # Claude Code
+./install.sh --agent all            # All supported agents
+
+# Install into a specific project
+./install.sh --project /path/to/your-gpui-app
+
+# Symlink skills for local development (live updates)
+./install.sh --symlink -a agy -a codex -a commandcode
 ```
 
-Your project structure should look like:
+### Method 3: Manual Installation
 
-```
-your-project/
-├── .claude/
-│   └── skills/
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       ├── gpui-init/
-│       ├── gpui-fundamentals/
-│       └── ... (other skills)
-├── src/
-└── Cargo.toml
-```
+Copy the skill folders into your agent's directory:
 
-See [Claude Code Skills documentation](https://docs.anthropic.com/en/docs/claude-code/skills) for more details.
+#### Antigravity (agy)
+- **Project**: `your-project/.agents/skills/`
+- **Global**: `~/.gemini/config/skills/` or `~/.agents/skills/`
+
+#### Codex
+- **Project**: `your-project/.agents/skills/` or `your-project/.codex/skills/`
+- **Global**: `~/.agents/skills/` or `~/.codex/skills/`
+
+#### CommandCode
+- **Project**: `your-project/.commandcode/skills/` or `your-project/.agents/skills/`
+- **Global**: `~/.commandcode/skills/` or `~/.agents/skills/`
+
+#### Claude Code
+- **Project**: `your-project/.claude/skills/`
+- **Global**: `~/.claude/skills/`
+
+#### Cursor / OpenCode / Universal
+- **Project**: `your-project/.agents/skills/`
+- **Global**: `~/.agents/skills/`
+
+---
 
 ## Skills Overview
 
 ### Getting Started
 
 | Skill | Description | When to Use |
-|-------|-------------|-------------|
-| [gpui-init](./skills/gpui-init/SKILL.md) | Project scaffolding and setup | "Create a new GPUI app" |
+| :--- | :--- | :--- |
+| [gpui-init](./gpui-init/SKILL.md) | Project scaffolding and templates | "Create a new GPUI app", initializing structure |
 
 ### Core Development
 
 | Skill | Description | When to Use |
-|-------|-------------|-------------|
-| [gpui-fundamentals](./skills/gpui-fundamentals/SKILL.md) | Core concepts: contexts, windows, entities, elements | Learning GPUI basics, understanding architecture |
-| [gpui-entities](./skills/gpui-entities/SKILL.md) | Entity lifecycle, subscriptions, state management | Managing component state, entity patterns |
-| [gpui-elements](./skills/gpui-elements/SKILL.md) | UI element creation and composition | Building element trees, creating components |
-| [gpui-styling](./skills/gpui-styling/SKILL.md) | Tailwind-like utility styling | Applying styles, layouts, colors |
-| [gpui-actions](./skills/gpui-actions/SKILL.md) | Actions and event handling | Implementing interactions, keyboard shortcuts |
-| [gpui-async](./skills/gpui-async/SKILL.md) | Async patterns and concurrency | Background tasks, async operations |
-| [gpui-patterns](./skills/gpui-patterns/SKILL.md) | Common UI patterns | Modals, lists, forms, dropdowns |
+| :--- | :--- | :--- |
+| [gpui-fundamentals](./gpui-fundamentals/SKILL.md) | Core concepts: contexts, windows, entities, elements | Learning GPUI basics, understanding architecture |
+| [gpui-entities](./gpui-entities/SKILL.md) | Entity lifecycle, subscriptions, state management | Managing component state, entity patterns |
+| [gpui-elements](./gpui-elements/SKILL.md) | UI element creation and composition | Building element trees, creating components |
+| [gpui-styling](./gpui-styling/SKILL.md) | Tailwind-like utility styling | Applying styles, layouts, colors, spacing |
+| [gpui-actions](./gpui-actions/SKILL.md) | Actions and event handling | User interactions, keyboard shortcuts |
+| [gpui-async](./gpui-async/SKILL.md) | Async patterns and concurrency | Background tasks, async operations, task tracking |
+| [gpui-patterns](./gpui-patterns/SKILL.md) | Common UI patterns | Modals, lists, forms, overlays, builders |
 
 ### Quality & Debugging
 
 | Skill | Description | When to Use |
-|-------|-------------|-------------|
-| [gpui-testing](./skills/gpui-testing/SKILL.md) | Testing GPUI applications | Writing tests, testing async code |
-| [gpui-troubleshooting](./skills/gpui-troubleshooting/SKILL.md) | Common errors and solutions | Debugging build errors, runtime panics |
-| [gpui-code-quality](./skills/gpui-code-quality/SKILL.md) | Best practices and guidelines | Code review, refactoring |
+| :--- | :--- | :--- |
+| [gpui-testing](./gpui-testing/SKILL.md) | Testing GPUI applications | Headless testing, simulating input, async tests |
+| [gpui-troubleshooting](./gpui-troubleshooting/SKILL.md) | Common errors and solutions | Debugging borrow errors, runtime panics |
+| [gpui-code-quality](./gpui-code-quality/SKILL.md) | Best practices and guidelines | Code review, refactoring, deterministic rendering |
+
+---
 
 ## Usage Examples
 
-### Create a New Project
+Any AI agent with these skills loaded can assist across the entire GPUI development lifecycle:
 
+### Scaffolding a New Project
 ```
 User: Create a new GPUI app with a counter button
-Claude: [Uses gpui-init to scaffold project, gpui-fundamentals for structure]
+Agent: [Uses gpui-init to scaffold project, gpui-fundamentals for structure]
 ```
 
-### Implement a Feature
-
+### Implementing UI Components
 ```
-User: Add a modal dialog for settings
-Claude: [Uses gpui-patterns for modal, gpui-styling for appearance]
-```
-
-### Fix an Error
-
-```
-User: Getting "already mutably borrowed" error
-Claude: [Uses gpui-troubleshooting to identify nested entity update issue]
+User: Add a modal dialog for settings with backdrop blur
+Agent: [Uses gpui-patterns for modal overlay, gpui-styling for appearance]
 ```
 
-### Add Async Data Loading
+### Troubleshooting Borrow Checker Errors
+```
+User: Getting "already mutably borrowed" panic during entity update
+Agent: [Uses gpui-troubleshooting to identify nested entity update and decouples state]
+```
 
+### Handling Non-Blocking Async Work
 ```
-User: Fetch data from an API without blocking the UI
-Claude: [Uses gpui-async for background tasks, gpui-patterns for loading states]
+User: Fetch data from a REST API without blocking the 120 FPS UI
+Agent: [Uses gpui-async for background threadpool tasks and foreground main-thread notify]
 ```
+
+---
 
 ## What You Can Build
 
-With these skills, Claude can help you:
+With these skills, your AI coding agent can help you:
 
-- Initialize new GPUI projects with proper structure
-- Create UI elements with flexbox layouts
-- Style components with Tailwind-like utilities
-- Handle user interactions and keyboard shortcuts
-- Manage application state with entities
-- Implement async operations safely
-- Build common UI patterns (modals, forms, lists)
-- Write proper tests for GPUI applications
-- Debug and fix common errors
+- Initialize new GPUI projects with proper Cargo dependencies and configuration
+- Create composable UI elements with flexbox layouts
+- Style components with Tailwind-like utility methods
+- Handle keyboard shortcuts and action dispatchers
+- Manage application state reactively with entities
+- Execute background computations safely without stutter
+- Build common UI patterns (modals, dropdowns, forms, virtual lists)
+- Write unit and integration tests with `TestAppContext`
+- Debug borrow-checker errors and lifecycle edge cases
+
+---
 
 ## Example Applications
 
 GPUI is used in production applications including:
 
-- **[Zed](https://zed.dev)** - High-performance code editor
-- **[Longbridge Pro](https://longbridge.com/desktop)** - Financial trading platform (built with [gpui-component](https://github.com/longbridge/gpui-component))
+- **[Zed](https://zed.dev)** — High-performance code editor
+- **[Longbridge Pro](https://longbridge.com/desktop)** — Financial trading desktop platform
+
+---
 
 ## Key Concepts
 
 ### Entities
-
-Entities are GPUI's core state management primitive:
+Entities are GPUI's reactive state management primitive:
 
 ```rust
 let counter = cx.new(|_| Counter { count: 0 });
@@ -138,8 +189,7 @@ counter.update(cx, |counter, cx| {
 ```
 
 ### Elements
-
-Build UI with composable elements:
+Build UI with composable, fluent elements:
 
 ```rust
 div()
@@ -150,9 +200,8 @@ div()
     .child(Button::new("Click Me"))
 ```
 
-### Async Operations
-
-Handle background work safely:
+### Async Tasks
+Run async operations safely on the main thread or threadpool:
 
 ```rust
 cx.spawn(async move |this, cx| {
@@ -165,26 +214,34 @@ cx.spawn(async move |this, cx| {
 }).detach();
 ```
 
+---
+
 ## Best Practices
 
-1. **Never use `unwrap()`** - Always propagate errors with `?`
-2. **Call `cx.notify()`** - After state changes that affect rendering
-3. **Use `WeakEntity`** - For back-references to avoid memory leaks
-4. **Use `SharedString`** - For efficient text handling
-5. **Detach or store tasks** - Don't drop async tasks prematurely
-6. **Use GPUI timers in tests** - Avoid `smol::Timer` in test code
+1. **Never use `unwrap()` or `expect()`** — Propagate errors with `?` or handle gracefully with UI fallbacks.
+2. **Always call `cx.notify()`** — Required after state mutations to trigger a re-render.
+3. **Use `WeakEntity` for back-references** — Prevents memory leaks and reference cycles.
+4. **Use `SharedString`** — Immutable reference-counted strings optimized for UI rendering.
+5. **Detach or store task handles** — Avoid dropping `Task<T>` prematurely.
+6. **Use GPUI timers in tests** — Ensure deterministic test execution with `cx.run_until_parked()`.
+
+---
 
 ## Resources
 
 - [GPUI Documentation](https://gpui.rs)
-- [Zed Repository](https://github.com/zed-industries/zed) - Source code and examples
-- [Zed GEMINI.md](https://github.com/zed-industries/zed/blob/main/GEMINI.md) - GPUI development guidelines
-- [gpui-component](https://github.com/longbridge/gpui-component) - Rich UI component library
+- [Zed Repository](https://github.com/zed-industries/zed) — Source code and reference implementations
+- [Zed GEMINI.md](https://github.com/zed-industries/zed/blob/main/GEMINI.md) — GPUI guidelines
+- [gpui-component](https://github.com/longbridge/gpui-component) — Rich component library
+
+---
+
+## Contributing
+
+Contributions are welcome! If you have additional GPUI patterns, troubleshooting scenarios, or agent enhancements, feel free to submit an issue or pull request.
+
+---
 
 ## License
 
 Apache-2.0
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests to improve these skills.

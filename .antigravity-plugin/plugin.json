@@ -1,0 +1,12 @@
+{
+  "name": "gpui",
+  "version": "1.0.0",
+  "description": "Build cross-platform desktop UI applications with the GPUI framework in Rust. Includes patterns for entities, contexts, elements, actions, async concurrency, testing, troubleshooting, styling, and best practices.",
+  "author": {
+    "name": "GPUI Skills Contributors",
+    "url": "https://github.com/zed-industries/zed"
+  },
+  "repository": "https://github.com/zed-industries/zed",
+  "homepage": "https://gpui.rs",
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "gpui-skills",
+  "version": "1.0.0",
+  "description": "Agent Skills for building cross-platform desktop UI applications with the GPUI framework in Rust. Compatible with Antigravity (agy), Codex, CommandCode, Claude Code, Cursor, and any Agent Skills-compliant AI coding assistant.",
+  "keywords": [
+    "agent-skills",
+    "skills",
+    "gpui",
+    "rust",
+    "ui",
+    "desktop",
+    "antigravity",
+    "agy",
+    "codex",
+    "commandcode",
+    "claude-code",
+    "cursor",
+    "state-management",
+    "tailwind",
+    "concurrency",
+    "async"
+  ],
+  "author": "GPUI Skills Contributors",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zed-industries/zed"
+  },
+  "homepage": "https://gpui.rs"
+}
