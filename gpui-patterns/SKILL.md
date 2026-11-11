@@ -70,7 +70,7 @@ struct ListView {
 impl Render for ListView {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .v_flex()
+            .flex().flex_col()
             .gap_2()
             .children(
                 self.items.iter().enumerate().map(|(index, item)| {
@@ -131,7 +131,7 @@ struct LoginForm {
 impl Render for LoginForm {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .v_flex()
+            .flex().flex_col()
             .gap_4()
             .p_6()
             .when_some(self.error.clone(), |this, error| {
@@ -168,7 +168,7 @@ impl LoginForm {
         _cx: &Context<Self>,
     ) -> impl IntoElement {
         div()
-            .v_flex()
+            .flex().flex_col()
             .gap_1()
             .child(
                 div().text_sm().child(label)
@@ -305,7 +305,7 @@ struct TabView {
 impl Render for TabView {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .v_flex()
+            .flex().flex_col()
             .size_full()
             .child(self.render_tabs(cx))
             .child(self.render_content())
@@ -315,7 +315,7 @@ impl Render for TabView {
 impl TabView {
     fn render_tabs(&self, cx: &Context<Self>) -> impl IntoElement {
         div()
-            .h_flex()
+            .flex().flex_row()
             .gap_2()
             .p_2()
             .bg(rgb(0x1a1a1a))
@@ -380,7 +380,7 @@ impl Render for DataView {
             }
             LoadState::Loaded(items) => {
                 div()
-                    .v_flex()
+                    .flex().flex_col()
                     .gap_2()
                     .children(items.iter().map(|item| {
                         div().child(item.clone())
@@ -402,7 +402,7 @@ impl DataView {
         cx.notify();
         
         cx.spawn(async move |this, cx| {
-            match fetch_data().await {
+            match fetch_data(cx.background_executor()).await {
                 Ok(data) => {
                     this.update(&mut *cx, |view, cx| {
                         view.state = LoadState::Loaded(data);
@@ -422,9 +422,11 @@ impl DataView {
     }
 }
 
-async fn fetch_data() -> Result<Vec<String>, anyhow::Error> {
+async fn fetch_data(
+    executor: &BackgroundExecutor,
+) -> Result<Vec<String>, anyhow::Error> {
     // Simulate API call
-    tokio::time::sleep(Duration::from_secs(1)).await;
+    executor.timer(Duration::from_secs(1)).await;
     Ok(vec!["Item 1".to_string(), "Item 2".to_string()])
 }
 ```
@@ -468,7 +470,7 @@ impl Render for Dropdown {
                         .border_1()
                         .border_color(rgb(0x4a4a4a))
                         .rounded(px(4.0))
-                        .v_flex()
+                        .flex().flex_col()
                         .children(
                             self.options.iter().map(|option| {
                                 let option = option.clone();

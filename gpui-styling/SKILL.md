@@ -59,10 +59,9 @@ div()
     .flex_row()                 // Horizontal (default)
     .flex_col()                 // Vertical
     
-// Short forms (from gpui-component)
-div()
-    .v_flex()                   // flex + flex_col
-    .h_flex()                   // flex + flex_row
+// Short forms provided by the gpui-component crate, not core GPUI:
+// div().v_flex() == div().flex().flex_col()
+// div().h_flex() == div().flex().flex_row()
 ```
 
 ### Alignment
@@ -420,7 +419,8 @@ div()
 ## Summary
 
 - Use `.size_full()` for full width/height
-- Use `.v_flex()` for vertical layouts, `.h_flex()` for horizontal
+- Use `.flex().flex_col()` for vertical layouts, `.flex().flex_row()` for horizontal
+- `gpui-component` also provides `.v_flex()` and `.h_flex()` shorthands
 - Use spacing utilities `.p_4()`, `.gap_2()` for consistent spacing
 - Use `.bg()`, `.text_color()` for colors
 - Chain methods for concise styling

@@ -37,12 +37,19 @@ license = "MIT"
 
 [dependencies]
 gpui = "0.2.2"
+gpui_platform = { version = "0.1", features = ["font-kit", "wayland", "x11"] }
 ```
+
+> `gpui_platform` selects the windowing, renderer, and text backend for the host OS.
+> `font-kit`, `wayland`, and `x11` are a safe cross-platform default. On macOS only
+> `font-kit` is needed; on Linux/FreeBSD enable `wayland`, `x11`, or both; Windows
+> needs no features. See the [GPUI README](https://github.com/zed-industries/zed/tree/main/crates/gpui).
 
 ### src/main.rs
 
 ```rust
 use gpui::*;
+use gpui_platform::application;
 
 struct HelloWorld {
     counter: usize,
@@ -74,17 +81,13 @@ impl Render for HelloWorld {
 }
 
 fn main() {
-    let app = Application::new();
-    
-    app.run(move |cx| {
-        cx.spawn(async move |cx| {
-            cx.open_window(WindowOptions::default(), |window, cx| {
-                cx.new(|_cx| HelloWorld { counter: 0 })
-            })?;
-            
-            Ok::<_, anyhow::Error>(())
-        })
-        .detach();
+    application().run(|cx: &mut App| {
+        if let Err(error) = cx.open_window(WindowOptions::default(), |_window, cx| {
+            cx.new(|_cx| HelloWorld { counter: 0 })
+        }) {
+            eprintln!("Failed to open window: {error}");
+        }
+        cx.activate(true);
     });
 }
 ```
@@ -98,7 +101,7 @@ fn main() {
 *.swo
 .idea/
 .vscode/
-Cargo.lock
+# Cargo.lock is committed for binary applications.
 ```
 
 ## Production App Template
@@ -134,6 +137,7 @@ authors = ["Your Name <your@email.com>"]
 
 [dependencies]
 gpui = "0.2.2"
+gpui_platform = { version = "0.1", features = ["font-kit", "wayland", "x11"] }
 anyhow = "1.0"
 
 [features]
@@ -160,34 +164,29 @@ fn main() {
 
 ```rust
 use gpui::*;
+use gpui_platform::application;
 use crate::ui::home::HomeView;
 
 pub fn run() {
-    let app = Application::new();
-    
-    app.run(move |cx| {
-        cx.spawn(async move |cx| {
-            cx.open_window(
-                WindowOptions {
-                    window_bounds: Some(WindowBounds::Windowed(Bounds {
-                        origin: Point { x: px(100.0), y: px(100.0) },
-                        size: Size { width: px(1024.0), height: px(768.0) },
-                    })),
-                    titlebar: Some(TitlebarOptions {
-                        title: Some("My App".into()),
-                        appears_transparent: false,
-                        ..Default::default()
-                    }),
+    application().run(|cx: &mut App| {
+        if let Err(error) = cx.open_window(
+            WindowOptions {
+                window_bounds: Some(WindowBounds::Windowed(Bounds {
+                    origin: Point { x: px(100.0), y: px(100.0) },
+                    size: Size { width: px(1024.0), height: px(768.0) },
+                })),
+                titlebar: Some(TitlebarOptions {
+                    title: Some("My App".into()),
+                    appears_transparent: false,
                     ..Default::default()
-                },
-                |window, cx| {
-                    cx.new(|_cx| HomeView::new())
-                }
-            )?;
-            
-            Ok::<_, anyhow::Error>(())
-        })
-        .detach();
+                }),
+                ..Default::default()
+            },
+            |_window, cx| cx.new(|_cx| HomeView::new()),
+        ) {
+            eprintln!("Failed to open window: {error}");
+        }
+        cx.activate(true);
     });
 }
 ```
@@ -292,7 +291,8 @@ channel = "stable"
 ## Optional: Using Pre-built Components
 
 > [!NOTE]
-> For pre-built UI components (similar to shadcn/ui), see the **gpui-component-usage** skill.
+> For pre-built UI components (similar to shadcn/ui), see the
+> [`gpui-component`](https://github.com/longbridge/gpui-component) crate.
 
 ## Project Checklist
 
@@ -300,9 +300,11 @@ When initializing a new project, ensure:
 
 - [ ] `Cargo.toml` has correct package metadata
 - [ ] `gpui` dependency is version `0.2.2` or later
-- [ ] `main.rs` initializes `Application::new()`
+- [ ] `gpui_platform` is declared with the features for your target platforms
+- [ ] `main.rs` starts the app with `gpui_platform::application().run(...)`
 - [ ] Window is created with `cx.open_window()`
 - [ ] `.gitignore` excludes `/target` and IDE files
+- [ ] `Cargo.lock` is committed for binary applications
 - [ ] `rust-toolchain.toml` specifies stable channel
 
 ## References

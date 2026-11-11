@@ -39,7 +39,7 @@ mod tests {
 async fn test_counter(cx: &mut TestAppContext) {
     let counter = cx.new(|_| Counter { count: 0 });
     
-    assert_eq!(counter.read(cx).count, 0);
+    assert_eq!(counter.read_with(cx, |counter, _| counter.count), 0);
 }
 ```
 
@@ -57,10 +57,10 @@ async fn test_async_operation(cx: &mut TestAppContext) {
     });
     
     // Wait for all async work to complete
-    cx.background_executor.run_until_parked();
+    cx.run_until_parked();
     
     // Check results
-    assert_eq!(view.read(cx).status, "Complete");
+    view.read_with(cx, |view, _| assert_eq!(view.status, "Complete"));
 }
 ```
 
@@ -79,7 +79,7 @@ async fn test_with_delay(cx: &mut TestAppContext) {
     // ❌ WRONG - Don't use smol::Timer
     // smol::Timer::after(Duration::from_secs(1)).await;
     
-    cx.background_executor.run_until_parked();
+    cx.run_until_parked();
 }
 ```
 
@@ -98,7 +98,7 @@ async fn test_increment(cx: &mut TestAppContext) {
         counter.increment(cx);
     });
     
-    assert_eq!(counter.read(cx).count, 1);
+    assert_eq!(counter.read_with(cx, |counter, _| counter.count), 1);
 }
 ```
 
@@ -112,8 +112,10 @@ async fn test_notify(cx: &mut TestAppContext) {
     let observed = Arc::new(AtomicBool::new(false));
     let observed_clone = observed.clone();
     
-    cx.observe(&view, move |_view, _cx| {
-        observed_clone.store(true, Ordering::SeqCst);
+    let _subscription = cx.update(|cx| {
+        cx.observe(&view, move |_view, _cx| {
+            observed_clone.store(true, Ordering::SeqCst);
+        })
     });
     
     view.update(cx, |view, cx| {
@@ -124,6 +126,33 @@ async fn test_notify(cx: &mut TestAppContext) {
     assert!(observed.load(Ordering::SeqCst));
 }
 ```
+
+> `TestAppContext` does not implement `observe`/`subscribe` directly. Run them on
+> the `App` inside `cx.update(|cx| ...)` as above, or use the
+> `cx.notifications(&view)` and `cx.events(&view)` helpers, which return streams.
+
+## Window and Input Simulation
+
+`TestAppContext` can create windows and route real input through them:
+
+```rust
+#[gpui::test]
+fn test_keyboard_input(cx: &mut TestAppContext) {
+    // Returns (Entity<MyView>, &mut VisualTestContext)
+    let (view, cx) = cx.add_window_view(|_window, cx| MyView::new());
+
+    // VisualTestContext is both a Window and an App.
+    cx.simulate_keystrokes("cmd-s");
+    cx.simulate_input("hello");
+
+    view.read_with(cx, |view, _| assert!(view.saved));
+}
+```
+
+Use `cx.add_window(|window, cx| MyView::new())` when you only need the
+`WindowHandle`, `cx.dispatch_action(window, MyAction)` to dispatch an action, and
+`cx.simulate_mouse_down` / `cx.simulate_mouse_up` / `cx.simulate_click` to exercise
+pointer handling. All of these run the executor until parked.
 
 ## Testing Actions
 
@@ -141,7 +170,7 @@ async fn test_action_handling(cx: &mut TestAppContext) {
         view.handle_action(&TestAction, cx);
     });
     
-    assert_eq!(view.read(cx).action_count, 1);
+    view.read_with(cx, |view, _| assert_eq!(view.action_count, 1));
 }
 ```
 
@@ -163,8 +192,10 @@ async fn test_event_emission(cx: &mut TestAppContext) {
     let received_events = Arc::new(Mutex::new(Vec::new()));
     let events_clone = received_events.clone();
     
-    cx.subscribe(&view, move |_this, _emitter, event, _cx| {
-        events_clone.lock().unwrap().push(event.clone());
+    let _subscription = cx.update(|cx| {
+        cx.subscribe(&view, move |_emitter, event, _cx| {
+            events_clone.lock().unwrap().push(event.clone());
+        })
     });
     
     view.update(cx, |view, cx| {
@@ -202,9 +233,9 @@ async fn test_background_task(cx: &mut TestAppContext) {
     });
     
     // Wait for all async work
-    cx.background_executor.run_until_parked();
+    cx.run_until_parked();
     
-    assert_eq!(view.read(cx).result, Some(42));
+    view.read_with(cx, |view, _| assert_eq!(view.result, Some(42)));
 }
 ```
 
@@ -224,10 +255,10 @@ async fn test_task_cancellation(cx: &mut TestAppContext) {
         view.cancel_task();
     });
     
-    cx.background_executor.run_until_parked();
+    cx.run_until_parked();
     
     // Task should not have completed
-    assert_eq!(view.read(cx).task_completed, false);
+    view.read_with(cx, |view, _| assert_eq!(view.task_completed, false));
 }
 ```
 
@@ -241,7 +272,7 @@ async fn test_state_changes(cx: &mut TestAppContext) {
     let view = cx.new(|_| MyView::new());
     
     // Initial state
-    assert_eq!(view.read(cx).count, 0);
+    view.read_with(cx, |view, _| assert_eq!(view.count, 0));
     
     // After update
     view.update(cx, |view, cx| {
@@ -249,7 +280,7 @@ async fn test_state_changes(cx: &mut TestAppContext) {
         cx.notify();
     });
     
-    assert_eq!(view.read(cx).count, 10);
+    view.read_with(cx, |view, _| assert_eq!(view.count, 10));
 }
 ```
 
@@ -264,12 +295,13 @@ async fn test_with_assertions(cx: &mut TestAppContext) {
         view.process_data(vec![1, 2, 3], cx);
     });
     
-    cx.background_executor.run_until_parked();
+    cx.run_until_parked();
     
-    let view_state = view.read(cx);
-    assert!(view_state.is_processed);
-    assert_eq!(view_state.items.len(), 3);
-    assert!(view_state.error.is_none());
+    view.read_with(cx, |view_state, _| {
+        assert!(view_state.is_processed);
+        assert_eq!(view_state.items.len(), 3);
+        assert!(view_state.error.is_none());
+    });
 }
 ```
 
@@ -291,7 +323,7 @@ async fn test_with_setup(cx: &mut TestAppContext) {
     });
     
     // Assertions
-    assert!(view.read(cx).has_state);
+    view.read_with(cx, |view, _| assert!(view.has_state));
     
     // Teardown is automatic when test ends
 }
@@ -318,9 +350,9 @@ async fn test_error_handling(cx: &mut TestAppContext) {
         }).detach();
     });
     
-    cx.background_executor.run_until_parked();
+    cx.run_until_parked();
     
-    assert!(view.read(cx).error.is_some());
+    view.read_with(cx, |view, _| assert!(view.error.is_some()));
 }
 ```
 
@@ -355,7 +387,7 @@ mod tests {
     #[gpui::test]
     async fn test_counter_initialization(cx: &mut TestAppContext) {
         let counter = cx.new(|_| Counter { count: 0 });
-        assert_eq!(counter.read(cx).count, 0);
+        assert_eq!(counter.read_with(cx, |counter, _| counter.count), 0);
     }
 
     #[gpui::test]
@@ -366,7 +398,7 @@ mod tests {
             counter.increment(cx);
         });
         
-        assert_eq!(counter.read(cx).count, 1);
+        assert_eq!(counter.read_with(cx, |counter, _| counter.count), 1);
     }
 
     #[gpui::test]
@@ -387,8 +419,8 @@ mod tests {
             }).detach();
         });
         
-        cx.background_executor.run_until_parked();
-        assert_eq!(counter.read(cx).count, 1);
+        cx.run_until_parked();
+        assert_eq!(counter.read_with(cx, |counter, _| counter.count), 1);
     }
 
     #[gpui::test]
@@ -397,8 +429,10 @@ mod tests {
         let notified = Arc::new(AtomicBool::new(false));
         let notified_clone = notified.clone();
         
-        cx.observe(&counter, move |_counter, _cx| {
-            notified_clone.store(true, Ordering::SeqCst);
+        let _subscription = cx.update(|cx| {
+            cx.observe(&counter, move |_counter, _cx| {
+                notified_clone.store(true, Ordering::SeqCst);
+            })
         });
         
         counter.update(cx, |counter, cx| {

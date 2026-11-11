@@ -48,7 +48,7 @@ impl MyView {
 fn fetch_data(&mut self, cx: &mut Context<Self>) {
     cx.spawn(async move |this, cx| {
         // Simulate async work
-       tokio::time::sleep(Duration::from_secs(1)).await;
+        cx.background_executor.timer(Duration::from_secs(1)).await;
         
         // Update entity from async context
         this.update(&mut *cx, |view, cx| {
@@ -149,7 +149,7 @@ impl MyView {
         // Cancel previous task by dropping it
         self.current_task = Some(cx.spawn(async move |this, cx| {
             // Task automatically cancelled if dropped
-            tokio::time::sleep(Duration::from_secs(5)).await;
+            cx.background_executor.timer(Duration::from_secs(5)).await;
             
             this.update(&mut *cx, |view, cx| {
                 view.status = "Done!".into();
@@ -189,12 +189,14 @@ cx.spawn(async move |this, cx| {
 
 ## Async with Window
 
-Use `.update_in()` when you need window access in async contexts:
+`cx.spawn()` gives the task an `AsyncApp`, which cannot access a window. When the
+task needs window access (for `update_in`, focus, or action dispatch), use
+`cx.spawn_in(window, ...)`; it provides an `AsyncWindowContext`.
 
 ```rust
-fn async_with_window(&mut self, cx: &mut Context<Self>) {
-    cx.spawn(async move |this, cx| {
-        tokio::time::sleep(Duration::from_secs(1)).await;
+fn async_with_window(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    cx.spawn_in(window, async move |this, cx| {
+        cx.background_executor.timer(Duration::from_secs(1)).await;
         
         this.update_in(&mut *cx, |view, window, cx| {
             view.count += 1;
@@ -368,7 +370,7 @@ impl AutoRefresh {
     fn start_auto_refresh(&mut self, cx: &mut Context<Self>) {
         self.refresh_task = Some(cx.spawn(async move |this, cx| {
             loop {
-                tokio::time::sleep(Duration::from_secs(30)).await;
+                cx.background_executor.timer(Duration::from_secs(30)).await;
                 
                 if this.update(&mut *cx, |view, cx| {
                     view.refresh_data(cx);

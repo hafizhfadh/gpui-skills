@@ -31,17 +31,15 @@ actions!(my_app, [Save, Open, Close, Refresh]);
 
 ### Actions with Data
 
-Use `#[derive(Clone, PartialEq)]` with the `Action` derive:
+Use the `#[gpui::action]` macro for actions with associated data:
 
 ```rust
 use gpui::*;
 
-#[derive(Clone, PartialEq)]
+#[gpui::action]
 struct SetCount {
     value: usize,
 }
-
-impl_actions!(my_app, [SetCount]);
 ```
 
 ### Action Documentation
@@ -180,6 +178,51 @@ window.dispatch_action(Save.boxed_clone(), cx);
 focus_handle.dispatch_action(&Save, window, cx);
 ```
 
+### Binding Keys
+
+Register key bindings once at startup and scope them to a `key_context`:
+
+```rust
+use gpui::*;
+use gpui_platform::application;
+
+actions!(menu, [MoveUp, MoveDown]);
+
+struct Menu;
+
+impl Render for Menu {
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        div()
+            .key_context("menu")
+            .on_action(cx.listener(Self::move_up))
+            .on_action(cx.listener(Self::move_down))
+            .child("Menu")
+    }
+}
+
+impl Menu {
+    fn move_up(&mut self, _: &MoveUp, _window: &mut Window, cx: &mut Context<Self>) {
+        cx.notify();
+    }
+
+    fn move_down(&mut self, _: &MoveDown, _window: &mut Window, cx: &mut Context<Self>) {
+        cx.notify();
+    }
+}
+
+fn main() {
+    application().run(|cx: &mut App| {
+        cx.bind_keys([
+            KeyBinding::new("up", MoveUp, Some("menu")),
+            KeyBinding::new("down", MoveDown, Some("menu")),
+        ]);
+        // Open the window as usual.
+    });
+}
+```
+
+Bindings can also be supplied by a JSON keymap keyed by the same context.
+
 ## Focus Management
 
 ### Focus Handles
@@ -205,8 +248,8 @@ impl Render for InputField {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
             .track_focus(&self.focus_handle)
-            .on_click(cx.listener(|this, _event, _window, cx| {
-                this.focus_handle.focus(cx);
+            .on_click(cx.listener(|this, _event, window, cx| {
+                this.focus_handle.focus(window, cx);
             }))
             .child(self.text.clone())
     }
@@ -288,7 +331,8 @@ struct LoginForm {
 impl Render for LoginForm {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         div()
-            .v_flex()
+            .flex()
+            .flex_col()
             .gap_4()
             .on_action(cx.listener(|this, _: &Submit, window, cx| {
                 println!("Submitting: {}", this.username);
@@ -353,10 +397,10 @@ impl Render for DraggableItem {
 
 ```rust
 div()
-    .on_click(|event, _window, cx| {
+    .on_click(|_event, _window, cx| {
         println!("Child clicked");
         // Prevent parent from receiving event
-        event.stop_propagation();
+        cx.stop_propagation();
     })
 ```
 

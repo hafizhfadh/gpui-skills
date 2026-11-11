@@ -328,7 +328,7 @@ async fn test_delay(cx: &mut TestAppContext) {
 #[gpui::test]
 async fn test_delay(cx: &mut TestAppContext) {
     cx.background_executor.timer(Duration::from_secs(1)).await;
-    cx.background_executor.run_until_parked();
+    cx.run_until_parked();
 }
 ```
 

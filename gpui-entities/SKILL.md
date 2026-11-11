@@ -21,23 +21,21 @@ Entities are GPUI's core state management primitive:
 
 ```rust
 use gpui::*;
+use gpui_platform::application;
 
 struct MyView {
     count: usize,
 }
 
 fn main() {
-    let app = Application::new();
-    
-    app.run(move |cx| {
-        cx.spawn(async move |cx| {
-            cx.open_window(WindowOptions::default(), |window, cx| {
-                // Create entity with cx.new()
-                cx.new(|_cx| MyView { count: 0 })
-            })?;
-            
-            Ok::<_, anyhow::Error>(())
-        }).detach();
+    application().run(|cx: &mut App| {
+        if let Err(error) = cx.open_window(WindowOptions::default(), |_window, cx| {
+            // Create entity with cx.new()
+            cx.new(|_cx| MyView { count: 0 })
+        }) {
+            eprintln!("Failed to open window: {error}");
+        }
+        cx.activate(true);
     });
 }
 ```
@@ -172,8 +170,8 @@ fn do_async_work(&self, cx: &mut Context<Self>) {
     cx.spawn(async move |this, cx| {
         // this: WeakEntity<Self>
         
-        // Async work
-        tokio::time::sleep(Duration::from_secs(1)).await;
+        // Async work (uses GPUI's executor timer, not tokio)
+        cx.background_executor.timer(Duration::from_secs(1)).await;
         
         // Update returns Result in async context
         this.update(&mut *cx, |view, cx| {

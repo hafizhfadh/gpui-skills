@@ -303,6 +303,7 @@ div()
 
 ```rust
 use gpui::*;
+use gpui_platform::application;
 
 struct AppView;
 
@@ -313,17 +314,13 @@ impl Render for AppView {
 }
 
 fn main() {
-    let app = Application::new();
-    
-    app.run(move |cx| {
-        cx.spawn(async move |cx| {
-            cx.open_window(WindowOptions::default(), |window, cx| {
-                cx.new(|_| AppView)
-            })?;
-            
-            Ok::<_, anyhow::Error>(())
-        })
-        .detach();
+    application().run(|cx: &mut App| {
+        if let Err(error) = cx.open_window(WindowOptions::default(), |_window, cx| {
+            cx.new(|_| AppView)
+        }) {
+            eprintln!("Failed to open window: {error}");
+        }
+        cx.activate(true);
     });
 }
 ```
@@ -399,6 +396,10 @@ The `cx.listener()` method creates event handlers that receive `&mut Self`:
     // this: mutable reference to the entity
     // event: the click event
     // window: window reference
+    // cx: the entity context
+}))
+```
+
 ### Todo List with Entity Management
 
 ```rust
@@ -646,4 +647,3 @@ div().child(self.text.clone())
 
 - [GPUI Documentation](https://gpui.rs)
 - [Zed GEMINI.md](https://github.com/zed-industries/zed/blob/main/GEMINI.md)
-```
